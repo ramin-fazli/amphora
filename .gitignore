@@ -1,0 +1,22 @@
+# Go
+bin/
+dist/
+*.test
+*.out
+vendor/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Kubebuilder / operator-sdk generated local artifacts
+config/local/
+*.kubeconfig
+
+# Env / secrets - never commit real credentials
+.env
+.env.*
+!.env.example

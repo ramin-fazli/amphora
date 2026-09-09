@@ -1,0 +1,141 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.14.0
+  name: modeldeployments.amphora.amphora.sh
+spec:
+  group: amphora.amphora.sh
+  names:
+    kind: ModelDeployment
+    listKind: ModelDeploymentList
+    plural: modeldeployments
+    singular: modeldeployment
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.tenancyClass
+      name: Tenancy
+      type: string
+    - jsonPath: .status.phase
+      name: Phase
+      type: string
+    - jsonPath: .status.effectivePackingMode
+      name: Packing
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ModelDeployment is the Schema for the modeldeployments API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ModelDeploymentSpec defines the desired state of ModelDeployment
+            properties:
+              allowedRegions:
+                description: |-
+                  AllowedRegions constrains scheduling/failover to these regions/clusters (data
+                  residency enforcement, Technical Specification §4.3). Required for RegulatedMultiTenant.
+                items:
+                  type: string
+                type: array
+              evalGate:
+                description: EvalGate configures the pre-traffic-flip canary probe
+                  (§3.2.1).
+                properties:
+                  canaryConfigMapRef:
+                    description: CanaryConfigMapRef names a ConfigMap holding the
+                      canary prompt set and matcher config.
+                    type: string
+                  enabled:
+                    default: false
+                    description: |-
+                      Enabled turns on the eval gate. If false, only the default latency-only probe runs
+                      and the audit trail records the deployment as "quality unverified".
+                    type: boolean
+                  timeoutMillis:
+                    default: 150
+                    description: |-
+                      TimeoutMillis is the gate deadline; on timeout the controller fails closed
+                      (traffic is not flipped, the swap is rolled back).
+                    format: int32
+                    minimum: 1
+                    type: integer
+                type: object
+              gpuFraction:
+                description: |-
+                  GPUFraction is the MIG profile (e.g. "1g.10gb") or fractional share requested.
+                  Required when TenancyClass is RegulatedMultiTenant (enforced by the admission webhook).
+                type: string
+              image:
+                description: Image is the container image serving the model (e.g.
+                  a vLLM-based image).
+                type: string
+              maxColocatedModels:
+                description: |-
+                  MaxColocatedModels caps how many models the Packing Scheduler may place on the
+                  same physical GPU alongside this one.
+                format: int32
+                minimum: 1
+                type: integer
+              priorityClass:
+                description: PriorityClass governs preemption order among co-located
+                  models on a shared GPU.
+                type: string
+              tenancyClass:
+                description: |-
+                  TenancyClass is immutable post-creation: downgrading isolation guarantees on a
+                  running workload requires deleting and recreating the ModelDeployment.
+                enum:
+                - SingleTenant
+                - TrustedMultiTenant
+                - RegulatedMultiTenant
+                type: string
+                x-kubernetes-validations:
+                - message: tenancyClass is immutable; delete and recreate to change
+                    isolation guarantees
+                  rule: self == oldSelf
+            required:
+            - image
+            - tenancyClass
+            type: object
+          status:
+            description: ModelDeploymentStatus defines the observed state of ModelDeployment
+            properties:
+              effectivePackingMode:
+                description: |-
+                  EffectivePackingMode records what the Packing Scheduler actually assigned (MIG/TimeSlice/None),
+                  so drift from the requested TenancyClass guarantee is observable.
+                type: string
+              observedGeneration:
+                description: ObservedGeneration is the most recent generation reconciled
+                  by the controller.
+                format: int64
+                type: integer
+              phase:
+                description: Phase is a coarse human-readable state (e.g. Pending,
+                  Warm, Serving, RolledBack).
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

@@ -1,0 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - amphora.amphora.sh
+  resources:
+  - modeldeployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - amphora.amphora.sh
+  resources:
+  - modeldeployments/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - amphora.amphora.sh
+  resources:
+  - modeldeployments/status
+  verbs:
+  - get
+  - patch
+  - update
