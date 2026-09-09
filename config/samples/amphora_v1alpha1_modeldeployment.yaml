@@ -1,0 +1,13 @@
+apiVersion: amphora.amphora.sh/v1alpha1
+kind: ModelDeployment
+metadata:
+  labels:
+    app.kubernetes.io/name: amphora
+    app.kubernetes.io/managed-by: kustomize
+  name: modeldeployment-sample
+spec:
+  image: ghcr.io/amphora-project/vllm-runtime:7b-fp16
+  tenancyClass: SingleTenant
+  priorityClass: default
+  evalGate:
+    enabled: false
