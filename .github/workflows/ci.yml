@@ -39,7 +39,10 @@ jobs:
 
       - name: go test
         if: steps.gomod.outputs.present == 'true'
-        run: go test ./... -race -coverprofile=coverage.out
+        # Uses the `test` Makefile target (not `go test ./...` directly) so envtest's
+        # KUBEBUILDER_ASSETS are provisioned and test/e2e (which needs a real cluster) is
+        # excluded, matching local dev workflow.
+        run: make test
 
   vuln-scan:
     runs-on: ubuntu-latest
