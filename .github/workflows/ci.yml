@@ -33,12 +33,11 @@ jobs:
 
       - name: golangci-lint
         if: steps.gomod.outputs.present == 'true'
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
-          # golangci-lint-action's `version: latest` resolves to the newest v1.x release
-          # (v2 is a breaking config-schema change the action doesn't default to). Our
-          # .golangci.yml is v2-schema and go.mod targets a Go version newer than what the
-          # v1 binary was built with, so pin an explicit v2 release.
+          # golangci-lint-action v6 doesn't support golangci-lint v2 at all; v7 is required.
+          # Our .golangci.yml is v2-schema and go.mod targets a Go version newer than the
+          # v1.x binaries are built with, so pin an explicit v2 release.
           version: v2.13.2
 
       - name: go test
